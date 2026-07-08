@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>發票稅額計算機</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; }
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 16px;
+  }
+  .calc {
+    width: 360px;
+    background: #0f0f1a;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .title { color: #8888aa; text-align: center; font-size: 14px; letter-spacing: 4px; margin-bottom: 14px; }
+
+  .mode {
+    display: flex; background: #1c1c2e; border-radius: 12px; padding: 4px; margin-bottom: 14px;
+  }
+  .mode button {
+    flex: 1; padding: 10px 0; border: none; border-radius: 9px;
+    background: transparent; color: #8888aa; font-size: 15px; cursor: pointer; transition: .2s;
+  }
+  .mode button.active { background: #e94560; color: #fff; font-weight: bold; }
+
+  .display {
+    background: #1c1c2e; border-radius: 16px; padding: 16px; margin-bottom: 14px;
+  }
+  .row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 8px 4px; border-bottom: 1px solid #2a2a40;
+  }
+  .row:last-child { border-bottom: none; }
+  .row .label { color: #8888aa; font-size: 14px; }
+  .row .value { color: #ccccdd; font-size: 20px; font-variant-numeric: tabular-nums; }
+  .row.input .value { color: #fff; font-size: 30px; font-weight: bold; }
+  .row.input .label { color: #e94560; font-weight: bold; }
+  .row .value.tax { color: #ffb347; }
+
+  .pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .pad button {
+    padding: 18px 0; border: none; border-radius: 14px;
+    background: #1c1c2e; color: #fff; font-size: 22px; cursor: pointer; transition: .1s;
+  }
+  .pad button:active { transform: scale(.94); background: #2a2a44; }
+  .pad .fn { background: #2a2a40; color: #ffb347; font-size: 18px; }
+  .pad .clear { background: #3d1f2b; color: #e94560; font-size: 18px; }
+  .rate-note { text-align: center; color: #555577; font-size: 12px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="calc">
+  <div class="title">發票稅額計算機</div>
+
+  <div class="mode">
+    <button id="modeNet" class="active" onclick="setMode('net')">輸入未稅</button>
+    <button id="modeGross" onclick="setMode('gross')">輸入含稅</button>
+  </div>
+
+  <div class="display">
+    <div class="row" id="rowNet">
+      <span class="label">未稅金額</span><span class="value" id="net">0</span>
+    </div>
+    <div class="row">
+      <span class="label">稅金 5%</span><span class="value tax" id="tax">0</span>
+    </div>
+    <div class="row" id="rowGross">
+      <span class="label">含稅金額</span><span class="value" id="gross">0</span>
+    </div>
+  </div>
+
+  <div class="pad">
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button class="clear" onclick="clearAll()">C</button>
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button class="fn" onclick="backspace()">⌫</button>
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button class="fn" onclick="press('000')">000</button>
+    <button onclick="press('0')">0</button>
+    <button onclick="press('00')">00</button>
+    <button class="fn" style="grid-column: span 2;" onclick="copyResult()" id="copyBtn">複製結果</button>
+  </div>
+
+  <div class="rate-note">稅率 5%|稅金四捨五入至整數</div>
+</div>
+
+<script>
+let mode = 'net';       // 'net' = 輸入未稅, 'gross' = 輸入含稅
+let input = '';         // 目前輸入字串
+const RATE = 0.05;
+const fmt = n => n.toLocaleString('zh-TW');
+
+function setMode(m) {
+  mode = m;
+  input = '';
+  document.getElementById('modeNet').classList.toggle('active', m === 'net');
+  document.getElementById('modeGross').classList.toggle('active', m === 'gross');
+  document.getElementById('rowNet').classList.toggle('input', m === 'net');
+  document.getElementById('rowGross').classList.toggle('input', m === 'gross');
+  render();
+}
+
+function press(d) {
+  if (input.length + d.length > 12) return;
+  if (input === '' && d !== '0' && d !== '00' && d !== '000') input = d;
+  else if (input !== '') input += d;
+  else if (input === '' && (d === '0' || d === '00' || d === '000')) input = '0';
+  render();
+}
+
+function backspace() { input = input.slice(0, -1); render(); }
+function clearAll() { input = ''; render(); }
+
+function calc() {
+  const v = parseInt(input || '0', 10);
+  let net, tax, gross;
+  if (mode === 'net') {
+    net = v;
+    tax = Math.round(net * RATE);
+    gross = net + tax;
+  } else {
+    gross = v;
+    net = Math.round(gross / (1 + RATE));
+    tax = gross - net;
+  }
+  return { net, tax, gross };
+}
+
+function render() {
+  const { net, tax, gross } = calc();
+  document.getElementById('net').textContent = fmt(net);
+  document.getElementById('tax').textContent = fmt(tax);
+  document.getElementById('gross').textContent = fmt(gross);
+}
+
+function copyResult() {
+  const { net, tax, gross } = calc();
+  const text = `未稅金額:${fmt(net)}\n稅金 5%:${fmt(tax)}\n含稅金額:${fmt(gross)}`;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '已複製 ✓';
+    setTimeout(() => btn.textContent = '複製結果', 1200);
+  });
+}
+
+// 鍵盤支援
+document.addEventListener('keydown', e => {
+  if (e.key >= '0' && e.key <= '9') press(e.key);
+  else if (e.key === 'Backspace') backspace();
+  else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') clearAll();
+  else if (e.key === 'Tab') { e.preventDefault(); setMode(mode === 'net' ? 'gross' : 'net'); }
+});
+
+setMode('net');
+</script>
+</body>
+</html>
