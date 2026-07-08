@@ -2,10 +2,11 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>發票稅額計算機</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; touch-action: manipulation; }
+  button { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
   body {
     min-height: 100vh;
     display: flex; align-items: center; justify-content: center;
@@ -60,19 +61,19 @@
   <div class="title">發票稅額計算機</div>
 
   <div class="mode">
-    <button id="modeNet" class="active" onclick="setMode('net')">輸入未稅</button>
     <button id="modeGross" onclick="setMode('gross')">輸入含稅</button>
+    <button id="modeNet" onclick="setMode('net')">輸入未稅</button>
   </div>
 
   <div class="display">
-    <div class="row" id="rowNet">
-      <span class="label">未稅金額</span><span class="value" id="net">0</span>
+    <div class="row" id="rowGross">
+      <span class="label">含稅金額</span><span class="value" id="gross">0</span>
     </div>
     <div class="row">
       <span class="label">稅金 5%</span><span class="value tax" id="tax">0</span>
     </div>
-    <div class="row" id="rowGross">
-      <span class="label">含稅金額</span><span class="value" id="gross">0</span>
+    <div class="row" id="rowNet">
+      <span class="label">未稅金額</span><span class="value" id="net">0</span>
     </div>
   </div>
 
@@ -98,7 +99,7 @@
 </div>
 
 <script>
-let mode = 'net';       // 'net' = 輸入未稅, 'gross' = 輸入含稅
+let mode = 'gross';     // 'net' = 輸入未稅, 'gross' = 輸入含稅
 let input = '';         // 目前輸入字串
 const RATE = 0.05;
 const fmt = n => n.toLocaleString('zh-TW');
@@ -160,11 +161,4 @@ function copyResult() {
 document.addEventListener('keydown', e => {
   if (e.key >= '0' && e.key <= '9') press(e.key);
   else if (e.key === 'Backspace') backspace();
-  else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') clearAll();
-  else if (e.key === 'Tab') { e.preventDefault(); setMode(mode === 'net' ? 'gross' : 'net'); }
-});
-
-setMode('net');
-</script>
-</body>
-</html>
+  else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') cle
