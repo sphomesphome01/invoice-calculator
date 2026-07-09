@@ -161,4 +161,11 @@ function copyResult() {
 document.addEventListener('keydown', e => {
   if (e.key >= '0' && e.key <= '9') press(e.key);
   else if (e.key === 'Backspace') backspace();
-  else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') cle
+else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') clearAll();
+  else if (e.key === 'Tab') { e.preventDefault(); setMode(mode === 'net' ? 'gross' : 'net'); }
+});
+
+setMode('gross');
+</script>
+</body>
+</html>
