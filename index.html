@@ -7,8 +7,11 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; touch-action: manipulation; }
   button { -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
-  body {
-    min-height: 100vh;
+body {
+  min-height: 100vh;
+  overscroll-behavior-y: none;
+  ...
+}
     display: flex; align-items: center; justify-content: center;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     padding: 16px;
